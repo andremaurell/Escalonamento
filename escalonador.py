@@ -4,19 +4,22 @@ from random import randint
 from threading import Thread
 
 class Bilhete:
-    bilhetes_gerados = []
+    bilhetes = []
     valor_maximo = 0
 
     def __init__(self):
-        self.gerar()
+        pass
+#    ''' def gerar(self, lista:list):
+#         for i in range(0, len(lista))
+#         processo.prioridade
 
-    def gerar(self):
-        while (bilhete := randint(0, Bilhete.valor_maximo)) in Bilhete.bilhetes_gerados:
-            bilhete = randint(1, Bilhete.valor_maximo)
-        self.numero = bilhete
-        Bilhete.bilhetes_gerados.append(bilhete)
-        Bilhete.ordenar()
-        return
+#     def gerar(self):
+#         while (bilhete := randint(0, Bilhete.valor_maximo)) in Bilhete.bilhetes_gerados:
+#             bilhete = randint(1, Bilhete.valor_maximo)
+#         self.numero = bilhete
+#         Bilhete.bilhetes_gerados.append(bilhete)
+#         Bilhete.ordenar()
+#         return'''
     
     def __str__(self):
         return str(self.numero)
@@ -51,20 +54,29 @@ class Processo:
 
 def loteria(lista: list, fracao_cpu: int):
     processos_concluidos = 0
-    while len(lista) > 0:
-        for i in range(len(Bilhete.bilhetes_gerados)):
-            processo_i = None
-            for processo in lista:
-                if processo.bilhete.numero == Bilhete.bilhetes_gerados[i]:
-                    processo_i = processo
-                    break
-            if processo_i is not None:
-                # print(f'Executando processo {processo_i.nome} com bilhete {processo_i.bilhete}')
-                processo_i.reduz_tempo_execucao(fracao_cpu)
-                if processo_i.tempo_execucao <= 0:
-                    print(processo_i.nome, 'terminou.')
-                    processos_concluidos += 1
-                    lista.remove(processo_i)
+    dicionario_processos = {}
+    dicionario_bilhetes = {}
+    # gerar os bilhetes
+    total = 0
+    for i in range(0, len(lista)):
+        num_bilhetes = lista[i].prioridade
+        dicionario_processos[lista[i]] = [x for x in range(total, total+num_bilhetes)]
+        total+=num_bilhetes
+        print(total)
+    # while len(lista) > 0:
+    #     for i in range(len(Bilhete.bilhetes_gerados)):
+    #         processo_i = None
+    #         for processo in lista:
+    #             if processo.bilhete.numero == Bilhete.bilhetes_gerados[i]:
+    #                 processo_i = processo
+    #                 break
+    #         if processo_i is not None:
+    #             # print(f'Executando processo {processo_i.nome} com bilhete {processo_i.bilhete}')
+    #             processo_i.reduz_tempo_execucao(fracao_cpu)
+    #             if processo_i.tempo_execucao <= 0:
+    #                 print(processo_i.nome, 'terminou.')
+    #                 processos_concluidos += 1
+    #                 lista.remove(processo_i)
     print(f'Foram concluídos {processos_concluidos} processos.')
     return
 
@@ -82,6 +94,7 @@ def alternanciaCircular(fila: Queue, fracao_cpu: int):
     return
 
 def prioridades():
+    
     pass
 
 def escalonar(nome_arquivo: str):
@@ -91,7 +104,6 @@ def escalonar(nome_arquivo: str):
     with open(nome_arquivo, 'r') as arquivo:
         cabecalho = arquivo.readline().split('|')
         algoritmo_escalonamento, fracao_cpu = cabecalho[0], int(cabecalho[1])
-        
         match algoritmo_escalonamento:
             case 'alternanciaCircular':
                 fila = Queue()
@@ -107,9 +119,9 @@ def escalonar(nome_arquivo: str):
                 while linha := arquivo.readline():
                     linha = linha.strip()
                     linha = linha.split('|')
-                    lista.append(Processo(linha[0], int(linha[1]), int(linha[2]), int(linha[3]), int(linha[4]), int(linha[5]), Bilhete()))
-                for elemento in lista:
-                    print(elemento)
+                    lista.append(Processo(linha[0], int(linha[1]), int(linha[2]), int(linha[3]), int(linha[4]), int(linha[5])))
+                #for elemento in lista:
+                    #print(elemento)
                 loteria(lista, fracao_cpu)
 
             case 'prioridades':
