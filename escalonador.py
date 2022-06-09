@@ -1,6 +1,7 @@
 # Uma thread pra escalonar e outra pra pegar a entrada do teclado
 from queue import Queue
 from random import randint
+from re import A, X
 from threading import Thread
 
 class Bilhete:
@@ -20,7 +21,6 @@ class Bilhete:
 #         Bilhete.bilhetes_gerados.append(bilhete)
 #         Bilhete.ordenar()
 #         return'''
-    
     def __str__(self):
         return str(self.numero)
     
@@ -29,6 +29,8 @@ class Bilhete:
     
     def ordenar():
         Bilhete.bilhetes_gerados.sort()
+
+tempo_executado = 0
 
 class Processo:
     def __init__(self, nome: str, PID: int, tempo_execucao: int, prioridade: int, UID: int, quantidade_de_memoria: int, bilhete: Bilhete = None):
@@ -40,6 +42,15 @@ class Processo:
         self.quantidade_de_memoria = quantidade_de_memoria
         self.bilhete = bilhete
 
+        
+
+    def relogio(self, fracao_cpu):
+        global tempo_executado
+        if self.tempo_execucao - fracao_cpu > 0:
+            tempo_executado += fracao_cpu
+        elif self.tempo_execucao - fracao_cpu < 0:
+            tempo_executado += self.tempo_execucao
+    
     def __str__(self):
         return f"{self.nome}|{self.PID}|{self.tempo_execucao}|{self.prioridade}|{self.UID}|{self.quantidade_de_memoria}"
     
@@ -60,23 +71,23 @@ def loteria(lista: list, fracao_cpu: int):
     total = 0
     for i in range(0, len(lista)):
         num_bilhetes = lista[i].prioridade
-        dicionario_processos[lista[i]] = [x for x in range(total, total+num_bilhetes)]
+        for x in range(total, total+num_bilhetes):
+            dicionario_processos[lista[i]] = x
+            dicionario_bilhetes[x] = lista[i]
         total+=num_bilhetes
-        print(total)
-    # while len(lista) > 0:
-    #     for i in range(len(Bilhete.bilhetes_gerados)):
-    #         processo_i = None
-    #         for processo in lista:
-    #             if processo.bilhete.numero == Bilhete.bilhetes_gerados[i]:
-    #                 processo_i = processo
-    #                 break
-    #         if processo_i is not None:
-    #             # print(f'Executando processo {processo_i.nome} com bilhete {processo_i.bilhete}')
-    #             processo_i.reduz_tempo_execucao(fracao_cpu)
-    #             if processo_i.tempo_execucao <= 0:
-    #                 print(processo_i.nome, 'terminou.')
-    #                 processos_concluidos += 1
-    #                 lista.remove(processo_i)
+    while len(lista) > 0:
+        Num_sort = randint(0, total-1)
+        processo = dicionario_bilhetes[Num_sort]
+        processo.reduz_tempo_execucao(fracao_cpu)
+        processo.relogio(fracao_cpu)
+        if processo.acabou():
+            if processo in lista:
+                lista.remove(processo)
+                print(f"processo {processo.nome} finalizado em {tempo_executado} segundos.")
+                processos_concluidos += 1
+                
+        
+        
     print(f'Foram concluídos {processos_concluidos} processos.')
     return
 
@@ -85,10 +96,11 @@ def alternanciaCircular(fila: Queue, fracao_cpu: int):
     while not fila.empty():
         processo = fila.get()
         processo.reduz_tempo_execucao(fracao_cpu)
+        processo.relogio(fracao_cpu)
         if processo.tempo_execucao > 0:
             fila.put(processo)
         else:
-            print(processo.nome, 'terminou.')
+            print(f"processo {processo.nome} finalizado em {processo.tempo_executado} segundos.")
             processos_concluidos += 1
     print(f'Foram concluídos {processos_concluidos} processos.')
     return
