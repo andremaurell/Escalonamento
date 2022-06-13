@@ -1,113 +1,68 @@
 # Uma thread pra escalonar e outra pra pegar a entrada do teclado
 from queue import Queue
-from random import randint
-from re import A, X
 from threading import Thread
+from classes.bilhete import Bilhete
+from classes.processo import Processo
 
-class Bilhete:
-    bilhetes = []
-    valor_maximo = 0
-
-    def __init__(self):
-        pass
-#    ''' def gerar(self, lista:list):
-#         for i in range(0, len(lista))
-#         processo.prioridade
-
-#     def gerar(self):
-#         while (bilhete := randint(0, Bilhete.valor_maximo)) in Bilhete.bilhetes_gerados:
-#             bilhete = randint(1, Bilhete.valor_maximo)
-#         self.numero = bilhete
-#         Bilhete.bilhetes_gerados.append(bilhete)
-#         Bilhete.ordenar()
-#         return'''
-    def __str__(self):
-        return str(self.numero)
-    
-    def __repr__(self):
-        return self.__str__
-    
-    def ordenar():
-        Bilhete.bilhetes_gerados.sort()
-
-tempo_executado = 0
-
-class Processo:
-    def __init__(self, nome: str, PID: int, tempo_execucao: int, prioridade: int, UID: int, quantidade_de_memoria: int, bilhete: Bilhete = None):
-        self.nome = nome
-        self.PID = PID
-        self.tempo_execucao = tempo_execucao
-        self.prioridade = prioridade
-        self.UID = UID
-        self.quantidade_de_memoria = quantidade_de_memoria
-        self.bilhete = bilhete
-
-        
-
-    def relogio(self, fracao_cpu):
-        global tempo_executado
-        if self.tempo_execucao - fracao_cpu > 0:
-            tempo_executado += fracao_cpu
-        elif self.tempo_execucao - fracao_cpu < 0:
-            tempo_executado += self.tempo_execucao
-    
-    def __str__(self):
-        return f"{self.nome}|{self.PID}|{self.tempo_execucao}|{self.prioridade}|{self.UID}|{self.quantidade_de_memoria}"
-    
-    def __repr__(self):
-        return self.__str__()
-
-    def reduz_tempo_execucao(self, fracao_cpu: int):
-        self.tempo_execucao -= fracao_cpu
-    
-    def acabou(self):
-        return self.tempo_execucao <= 0
+arquivo_entrada = ''
+tempo_cpu = 0
 
 def loteria(lista: list, fracao_cpu: int):
     processos_concluidos = 0
-    dicionario_processos = {}
-    dicionario_bilhetes = {}
-    # gerar os bilhetes
-    total = 0
-    for i in range(0, len(lista)):
-        num_bilhetes = lista[i].prioridade
-        for x in range(total, total+num_bilhetes):
-            dicionario_processos[lista[i]] = x
-            dicionario_bilhetes[x] = lista[i]
-        total+=num_bilhetes
-    while len(lista) > 0:
-        Num_sort = randint(0, total-1)
-        processo = dicionario_bilhetes[Num_sort]
-        processo.reduz_tempo_execucao(fracao_cpu)
-        processo.relogio(fracao_cpu)
-        if processo.acabou():
-            if processo in lista:
-                lista.remove(processo)
-                print(f"processo {processo.nome} finalizado em {tempo_executado} segundos.")
+    iteracoes = 0
+    for processo in lista:
+        processo.gerar_bilhetes()
+    global arquivo_entrada
+    with open(f'log-{arquivo_entrada}.txt', 'w') as log:
+        while len(lista) > 0:
+            iteracoes += 1
+            processo_sorteado = Processo.sortear()
+            processo_sorteado.reduz_tempo_execucao(fracao_cpu)
+            if processo_sorteado.acabou() and processo_sorteado in lista:
+                lista.remove(processo_sorteado)
+                tempo_executado = (iteracoes * fracao_cpu) + processo_sorteado.tempo_execucao
+                log.write(f"processo {processo_sorteado.nome} finalizado em {tempo_executado} segundos.\n")
                 processos_concluidos += 1
-                
-        
-        
-    print(f'Foram concluídos {processos_concluidos} processos.')
-    return
+        print(f'Foram concluídos {processos_concluidos} processos.')
+        return
 
 def alternanciaCircular(fila: Queue, fracao_cpu: int):
     processos_concluidos = 0
-    while not fila.empty():
-        processo = fila.get()
-        processo.reduz_tempo_execucao(fracao_cpu)
-        processo.relogio(fracao_cpu)
-        if processo.tempo_execucao > 0:
-            fila.put(processo)
-        else:
-            print(f"processo {processo.nome} finalizado em {processo.tempo_executado} segundos.")
-            processos_concluidos += 1
-    print(f'Foram concluídos {processos_concluidos} processos.')
-    return
+    iteracoes = 0
+    global arquivo_entrada
+    with open(f'log-{arquivo_entrada}.txt', 'w') as log:
+        while not fila.empty():
+            iteracoes += 1
+            processo = fila.get()
+            processo.reduz_tempo_execucao(fracao_cpu)
+            if processo.tempo_execucao > 0:
+                fila.put(processo)
+            else:
+                tempo_executado = (iteracoes * fracao_cpu) + processo.tempo_execucao
+                log.write(f"processo {processo.nome} finalizado em {tempo_executado} segundos.\n")
+                processos_concluidos += 1
+        print(f'Foram concluídos {processos_concluidos} processos.')
+        return
 
-def prioridades():
-    
-    pass
+def prioridades(lista: list, fracao_cpu: int):
+    processos_concluidos = 0
+    iteracoes = 0
+    global arquivo_entrada
+    with open(f'log-{arquivo_entrada}.txt', 'w') as log:
+        while len(lista) > 0:
+            lista.sort(key=lambda x: x.prioridade, reverse=True)
+            for processo in lista:
+                prioridade_mais_alta = lista[0].prioridade
+                if processo.prioridade == prioridade_mais_alta:
+                    processo.reduz_tempo_execucao(fracao_cpu)
+                    if processo.acabou() and processo in lista:
+                        lista.remove(processo)
+                        tempo_executado = (iteracoes * fracao_cpu) + processo.tempo_execucao
+                        log.write(f"processo {processo.nome} finalizado em {tempo_executado} segundos.\n")
+                        processos_concluidos += 1
+            iteracoes += 1
+        print(f'Foram concluídos {processos_concluidos} processos.')
+        return
 
 def escalonar(nome_arquivo: str):
     numero_de_processos = 0
@@ -132,27 +87,27 @@ def escalonar(nome_arquivo: str):
                     linha = linha.strip()
                     linha = linha.split('|')
                     lista.append(Processo(linha[0], int(linha[1]), int(linha[2]), int(linha[3]), int(linha[4]), int(linha[5])))
-                #for elemento in lista:
-                    #print(elemento)
                 loteria(lista, fracao_cpu)
 
-            case 'prioridades':
-                pass
+            case 'prioridade':
+                lista = list()
+                while linha := arquivo.readline():
+                    linha = linha.strip()
+                    linha = linha.split('|')
+                    lista.append(Processo(linha[0], int(linha[1]), int(linha[2]), int(linha[3]), int(linha[4]), int(linha[5])))
+                prioridades(lista, fracao_cpu)
 
             case _:
                 print('Algoritmo de escalonamento não reconhecido')    
-        
-
 
 def main():
     entrada = input().split(' ')
     if comando := entrada[0] == 'escalonar':
         if (nome_arquivo := entrada[1]).endswith('.txt'):
+            global arquivo_entrada
+            arquivo_entrada = nome_arquivo[:-4]
             escalonar(nome_arquivo)
     return False
-
-    # arquivo = open('loteria.txt', 'r')
-    # arquivo.readlines()
 
 if __name__ == '__main__':
     main()
