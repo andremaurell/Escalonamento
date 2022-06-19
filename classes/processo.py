@@ -35,3 +35,6 @@ class Processo:
     
     def sortear():
         return Processo.dicionario_bilhetes[Bilhete.sortear()]
+    
+    def possui_bilhetes(self):
+        return len(self.bilhetes) > 0
