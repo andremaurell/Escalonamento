@@ -1,10 +1,13 @@
-# Uma thread pra escalonar e outra pra pegar a entrada do teclado
 from time import sleep
 from queue import Queue
 from threading import Thread
-from classes.bilhete import Bilhete
 from classes.processo import Processo
 
+# ========================================================================= #
+#                                                                           #
+#     Constantes que podem ser ajustadas manualmente, caso necessário       #
+#                                                                           #
+# ========================================================================= #
 QUEUE = 'Queue'
 LIST = 'list'
 ALTERNANCIA_CIRCULAR = 'alternanciaCircular'
@@ -12,6 +15,11 @@ LOTERIA = 'loteria'
 PRIORIDADE = 'prioridade'
 DELAY = 0.0005
 
+# ========================================================================= #
+#                                                                           #
+#          Variáveis globais que serão manipuladas pelas funções            #
+#                                                                           #
+# ========================================================================= #
 arquivo_entrada = ''
 algoritmo_escalonamento = ''
 estrutura_de_dados = []
@@ -22,6 +30,11 @@ iteracoes = 0
 escalonador_acabou = False
 
 
+# ========================================================================= #
+#                                                                           #
+#           Algoritmo de escalonamento de processos por loteria             #
+#                                                                           #
+# ========================================================================= #
 def loteria():
     global estrutura_de_dados
     global fracao_cpu
@@ -41,12 +54,18 @@ def loteria():
                 tempo_executado = ((iteracoes * fracao_cpu) +
                                    processo_sorteado.tempo_execucao)
                 log.write(
-                    f"processo {processo_sorteado.nome} finalizado em {tempo_executado} segundos.\n")
+                    f"processo {processo_sorteado.nome} finalizado em" +
+                    f" {tempo_executado} segundos.\n")
                 processos_concluidos += 1
             sleep(DELAY)
     return
 
 
+# ========================================================================= #
+#                                                                           #
+#     Algoritmo de escalonamento de processos por alternância circular      #
+#                                                                           #
+# ========================================================================= #
 def alternanciaCircular():
     global estrutura_de_dados
     global fracao_cpu
@@ -64,12 +83,18 @@ def alternanciaCircular():
                 tempo_executado = ((iteracoes * fracao_cpu) +
                                    processo.tempo_execucao)
                 log.write(
-                    f"processo {processo.nome} finalizado em {tempo_executado} segundos.\n")
+                    f"processo {processo.nome} finalizado em" +
+                    f" {tempo_executado} segundos.\n")
                 processos_concluidos += 1
             sleep(DELAY)
     return
 
 
+# ========================================================================= #
+#                                                                           #
+#         Algoritmo de escalonamento de processos por prioridades           #
+#                                                                           #
+# ========================================================================= #
 def prioridades():
     global estrutura_de_dados
     global fracao_cpu
@@ -89,12 +114,21 @@ def prioridades():
                         tempo_executado = ((iteracoes * fracao_cpu) +
                                            processo.tempo_execucao)
                         log.write(
-                            f"processo {processo.nome} finalizado em {tempo_executado} segundos.\n")
+                            f"processo {processo.nome} finalizado em" +
+                            f" {tempo_executado} segundos.\n")
                         processos_concluidos += 1
             sleep(DELAY)
     return
 
 
+# ========================================================================= #
+#                                                                           #
+#     Escalonador de processos, que recebe o arquivo de entrada,            #
+#     seta algumas variáveis globais e chama a função de escalonamento      #
+#     apropriada, conforme estabelecido no arquivo. (Também é a thread      #
+#     principal).                                                           #
+#                                                                           #
+# ========================================================================= #
 def escalonar(nome_arquivo: str):
     global escalonador_acabou
     global algoritmo_escalonamento
@@ -132,6 +166,12 @@ def escalonar(nome_arquivo: str):
     return
 
 
+# ========================================================================= #
+#                                                                           #
+#     Função que é recebe inputs infinitos do usuário, até que a thread     #
+#     principal acabe. (Thread secundária).                                 #
+#                                                                           #
+# ========================================================================= #
 def ao_pressionar():
     global estrutura_de_dados
     global escalonador_acabou
@@ -160,6 +200,12 @@ def ao_pressionar():
             print('Algoritmo de escalonamento não reconhecido')
 
 
+# ========================================================================= #
+#                                                                           #
+#     Função principal que ativa as threads e faz a leitura do arquivo      #
+#     de processos a serem escalonados.                                     #
+#                                                                           #
+# ========================================================================= #
 def main():
     thread_principal = None
 
