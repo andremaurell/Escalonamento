@@ -246,6 +246,8 @@ def ao_pressionar():
 def main():
     thread_principal = None
 
+    print("Bem vindo! Escreva qual função e qual arquivo você quer escalonar.\n" + 
+     "Escreva 'escalonar' e o nome do arquivo.")
     entrada = input().split(' ')
     if ((comando := entrada[0] == 'escalonar') and
             (nome_arquivo := entrada[1]).endswith('.txt')):
