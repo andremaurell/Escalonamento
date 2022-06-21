@@ -13,21 +13,31 @@ LIST = 'list'
 ALTERNANCIA_CIRCULAR = 'alternanciaCircular'
 LOTERIA = 'loteria'
 PRIORIDADE = 'prioridade'
-DELAY = 0.0005
+DELAY = 0.0005  # Tempo de delay entre cada iteração do algoritmo de escalona-
+# mento, para que haja tempo do usuário introduzir novos processos enquanto
+# o algoritmo de escalonamento executa.
 
 # ========================================================================= #
 #                                                                           #
 #          Variáveis globais que serão manipuladas pelas funções            #
 #                                                                           #
 # ========================================================================= #
-arquivo_entrada = ''
-algoritmo_escalonamento = ''
-estrutura_de_dados = []
-processos_concluidos = 0
-tempo_cpu = 0
-fracao_cpu = 0
-iteracoes = 0
-escalonador_acabou = False
+arquivo_entrada = ''  # Guarda o nome do arquivo de entrada para ser usado na
+# criação do nome do arquivo de log.
+algoritmo_escalonamento = ''  # Armazena o nome do algoritmo de escalonamento
+# dado pelo arquivo de entrada.
+estrutura_de_dados = []  # Lista que armazenará os processos a serem escalona-
+# dos e que receberá novos processos introduzidos pela thread_teclado.
+processos_concluidos = 0  # Contador de processos concluídos.
+fracao_cpu = 0  # Fração de "tempo" de CPU que o processo terá para executar.
+# É dada pelo arquivo de entrada.
+iteracoes = 0  # Contador de iterações que será utilizado para o log de execu-
+# ção dos processos e que será incrementado a cada iteração do loop principal
+# do algoritmo de escalonamento (ou seja, enquanto houverem processos a serem
+# executados).
+escalonador_acabou = False  # Servirá para saber até quando poderão ser adicio-
+# nados novos processos na estrutura_de_dados, enquanto algum algoritmo de es-
+# calonamento estiver sendo executado.
 
 
 # ========================================================================= #
@@ -41,23 +51,42 @@ def loteria():
     global processos_concluidos
     global iteracoes
     global arquivo_entrada
+
+    # Para cada processo na lista, geram-se seus bilhetes, conforme a quantia
+    # estabelecida pelo número de prioridade do processo (dado quando o pro-
+    # cesso foi criado e adicionado na estrutura_de_dados).
     for processo in estrutura_de_dados:
         processo.gerar_bilhetes()
+
+    # Com a abertura de um arquivo.txt para log da ordem de finalização dos
+    # processos, que se dará pela escrita do nome do processo e o tempo de
+    # execução que ele levou para finalizar.
     with open(f'log-{arquivo_entrada}.txt', 'w') as log:
+        # Enquanto a lista de processos não estiver vazia, ou seja, enquanto
+        # houverem processos a serem escalonados, o algoritmo de escalonamen-
+        # to será executado.
         while len(estrutura_de_dados) > 0:
             iteracoes += 1
-            processo_sorteado = Processo.sortear()
-            processo_sorteado.reduz_tempo_execucao(fracao_cpu)
+            processo_sorteado = Processo.sortear()  # Sorteia um processo da
+            # lista de processos e o retorna como um objeto do tipo Processo
+            # que ficará armazenado na variável processo_sorteado.
+            processo_sorteado.reduz_tempo_execucao(fracao_cpu)  # Executa o
+            # processo sorteado (reduz seu tempo de execução pela quantia de
+            # tempo de CPU que os processos terão para executar).
+
+            # Caso o processo sorteado tenha terminado, o processo é remov-
+            # ido da lista de processos e o tempo de execução é registrado
+            # no arquivo de log.
             if (processo_sorteado.acabou() and
                     processo_sorteado in estrutura_de_dados):
                 estrutura_de_dados.remove(processo_sorteado)
-                tempo_executado = ((iteracoes * fracao_cpu) +
-                                   processo_sorteado.tempo_execucao)
                 log.write(
-                    f"processo {processo_sorteado.nome} finalizado em" +
-                    f" {tempo_executado} segundos.\n")
+                    f"processo {processo_sorteado.nome} finalizado em " +
+                    f"{tempo_executado(processo_sorteado.tempo_execucao)} " +
+                    f"segundos.\n")
                 processos_concluidos += 1
-            sleep(DELAY)
+            sleep(DELAY)  # Delay para que o usuário possa introduzir novos
+            # processos em tempo de execução.
     return
 
 
@@ -80,11 +109,10 @@ def alternanciaCircular():
             if processo.tempo_execucao > 0:
                 estrutura_de_dados.append(processo)
             else:
-                tempo_executado = ((iteracoes * fracao_cpu) +
-                                   processo.tempo_execucao)
                 log.write(
-                    f"processo {processo.nome} finalizado em" +
-                    f" {tempo_executado} segundos.\n")
+                    f"processo {processo.nome} finalizado em " +
+                    f"{tempo_executado(processo.tempo_execucao)} " +
+                    f"segundos.\n")
                 processos_concluidos += 1
             sleep(DELAY)
     return
@@ -111,15 +139,22 @@ def prioridades():
                     processo.reduz_tempo_execucao(fracao_cpu)
                     if processo.acabou() and processo in estrutura_de_dados:
                         estrutura_de_dados.remove(processo)
-                        tempo_executado = ((iteracoes * fracao_cpu) +
-                                           processo.tempo_execucao)
                         log.write(
-                            f"processo {processo.nome} finalizado em" +
-                            f" {tempo_executado} segundos.\n")
+                            f"processo {processo.nome} finalizado em " +
+                            f"{tempo_executado(processo.tempo_execucao)} " +
+                            f"segundos.\n")
                         processos_concluidos += 1
             sleep(DELAY)
     return
 
+
+def tempo_executado(tempo_execucao: int) -> int:
+    """
+    Calcula o tempo de execução de um processo.
+    """
+    global iteracoes
+    global fracao_cpu
+    return (iteracoes * fracao_cpu) + tempo_execucao
 
 # ========================================================================= #
 #                                                                           #
@@ -129,6 +164,8 @@ def prioridades():
 #     principal).                                                           #
 #                                                                           #
 # ========================================================================= #
+
+
 def escalonar(nome_arquivo: str):
     global escalonador_acabou
     global algoritmo_escalonamento
