@@ -199,6 +199,7 @@ def escalonar(nome_arquivo: str):
             case _:
                 print('Algoritmo de escalonamento não reconhecido')
     print(f'Foram concluídos {processos_concluidos} processos.')
+    print("Digite qualquer coisa para finalizar a execução do programa!")
     escalonador_acabou = True
     return
 
@@ -215,27 +216,30 @@ def ao_pressionar():
     global algoritmo_escalonamento
 
     while not escalonador_acabou:
+        print("Escreva Nome|PID|tempo_execucao|prioridade|UID|quantidade_de_memoria para adicionar um novo processo durante o tempo de execução.")
         novo_processo = str(input())
-        if novo_processo == '':
-            continue
+        if novo_processo == 'sair':
+            break
+        
         novo_processo = novo_processo.split('|')
-        novo_processo = Processo(
+        try:
+            novo_processo = Processo(
             nome=novo_processo[0],
             PID=int(novo_processo[1]),
             tempo_execucao=int(novo_processo[2]),
             prioridade=int(novo_processo[3]),
             UID=int(novo_processo[4]),
             quantidade_de_memoria=int(novo_processo[5])
-        )
-        if algoritmo_escalonamento == 'loteria':
-            novo_processo.gerar_bilhetes()
-        if type(estrutura_de_dados) == Queue:
-            estrutura_de_dados.put(novo_processo)
-        elif type(estrutura_de_dados) == list:
-            estrutura_de_dados.append(novo_processo)
-        else:
-            print('Algoritmo de escalonamento não reconhecido')
+            )
+            if algoritmo_escalonamento == 'loteria':
+                novo_processo.gerar_bilhetes()
 
+            estrutura_de_dados.append(novo_processo)
+        except:
+            if not escalonador_acabou:
+                print('Erro ao adicionar processo')
+                continue
+        
 
 # ========================================================================= #
 #                                                                           #
@@ -246,8 +250,8 @@ def ao_pressionar():
 def main():
     thread_principal = None
 
-    print("Bem vindo! Escreva qual função e qual arquivo você quer escalonar.\n" + 
-     "Escreva 'escalonar' e o nome do arquivo.")
+    print("Bem vindo! Escreva qual função e qual arquivo você quer escalonar.\n" +
+          "Escreva 'escalonar' e o nome do arquivo.")
     entrada = input().split(' ')
     if ((comando := entrada[0] == 'escalonar') and
             (nome_arquivo := entrada[1]).endswith('.txt')):
