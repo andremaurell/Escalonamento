@@ -8,11 +8,6 @@ from classes.processo import Processo
 #     Constantes que podem ser ajustadas manualmente, caso necessário       #
 #                                                                           #
 # ========================================================================= #
-QUEUE = 'Queue'
-LIST = 'list'
-ALTERNANCIA_CIRCULAR = 'alternanciaCircular'
-LOTERIA = 'loteria'
-PRIORIDADE = 'prioridade'
 DELAY = 0.0005  # Tempo de delay entre cada iteração do algoritmo de escalona-
 # mento, para que haja tempo do usuário introduzir novos processos enquanto
 # o algoritmo de escalonamento executa.
@@ -190,11 +185,11 @@ def escalonar(nome_arquivo: str):
                 )
             )
         match algoritmo_escalonamento:
-            case str(ALTERNANCIA_CIRCULAR):
+            case 'alternanciaCircular':
                 alternanciaCircular()
-            case str(LOTERIA):
+            case 'loteria':
                 loteria()
-            case str(PRIORIDADE):
+            case 'prioridade':
                 prioridades()
             case _:
                 print('Algoritmo de escalonamento não reconhecido')
