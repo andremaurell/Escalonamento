@@ -77,7 +77,7 @@ def loteria():
                 log.write(
                     f"processo {processo_sorteado.nome} finalizado em " +
                     f"{tempo_executado(processo_sorteado.tempo_execucao)} " +
-                    f"segundos.\n")
+                    f"milissegundos.\n")
                 processos_concluidos += 1
             sleep(DELAY)  # Delay para que o usuário possa introduzir novos
             # processos em tempo de execução.
