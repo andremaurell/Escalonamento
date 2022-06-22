@@ -158,8 +158,6 @@ def tempo_executado(tempo_execucao: int) -> int:
 #     principal).                                                           #
 #                                                                           #
 # ========================================================================= #
-
-
 def escalonar(nome_arquivo: str):
     global escalonador_acabou
     global algoritmo_escalonamento
