@@ -1,6 +1,6 @@
 # Escalonamento
 Algoritmos de escalonamento, funcionando como um escalonador de um Sistema Operacional.
-Para seu uso, é necessário apenas abrir um terminal na mesma pasta que o arquivo _escalonador.py_, e executar o comando:
+Para seu uso, é necessário ter o python 3.10.4 instalado e abrir um terminal na mesma pasta que o arquivo _escalonador.py_, e executar o comando:
 ```
 python3 escalonador.py
 ```
