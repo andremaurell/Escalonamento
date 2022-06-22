@@ -1,5 +1,4 @@
 from time import sleep
-from queue import Queue
 from threading import Thread
 from classes.processo import Processo
 
@@ -167,32 +166,38 @@ def escalonar(nome_arquivo: str):
     global estrutura_de_dados
     global fracao_cpu
     global processos_concluidos
-    with open(nome_arquivo, 'r') as arquivo:
-        cabecalho = arquivo.readline().split('|')
-        algoritmo_escalonamento = str(cabecalho[0])
-        fracao_cpu = int(cabecalho[1])
-        while linha := arquivo.readline():
-            linha = linha.strip()
-            linha = linha.split('|')
-            estrutura_de_dados.append(
-                Processo(
-                    nome=linha[0],
-                    PID=int(linha[1]),
-                    tempo_execucao=int(linha[2]),
-                    prioridade=int(linha[3]),
-                    UID=int(linha[4]),
-                    quantidade_de_memoria=int(linha[5])
+    try:
+        with open(nome_arquivo, 'r') as arquivo:
+            cabecalho = arquivo.readline().split('|')
+            algoritmo_escalonamento = str(cabecalho[0])
+            fracao_cpu = int(cabecalho[1])
+            while linha := arquivo.readline():
+                linha = linha.strip()
+                linha = linha.split('|')
+                estrutura_de_dados.append(
+                    Processo(
+                        nome=linha[0],
+                        PID=int(linha[1]),
+                        tempo_execucao=int(linha[2]),
+                        prioridade=int(linha[3]),
+                        UID=int(linha[4]),
+                        quantidade_de_memoria=int(linha[5])
+                    )
                 )
-            )
-        match algoritmo_escalonamento:
-            case 'alternanciaCircular':
-                alternanciaCircular()
-            case 'loteria':
-                loteria()
-            case 'prioridade':
-                prioridades()
-            case _:
-                print('Algoritmo de escalonamento não reconhecido')
+            match algoritmo_escalonamento:
+                case 'alternanciaCircular':
+                    alternanciaCircular()
+                case 'loteria':
+                    loteria()
+                case 'prioridade':
+                    prioridades()
+                case _:
+                    print('Algoritmo de escalonamento não reconhecido.')
+                    main()
+    except FileNotFoundError:
+        print("ERRO: arquivo de texto não encontrado.")
+        escalonador_acabou = True
+        quit
     print(f'Foram concluídos {processos_concluidos} processos.')
     print("Digite qualquer coisa para finalizar a execução do programa!")
     escalonador_acabou = True
@@ -210,12 +215,11 @@ def ao_pressionar():
     global escalonador_acabou
     global algoritmo_escalonamento
 
+    print("Escalonador iniciando...\n\n" +
+        "Escreva Nome|PID|tempo_execucao|prioridade|UID|quantidade_de_memoria para adicionar " +
+        "um novo processo durante o tempo de execução.\n")
     while not escalonador_acabou:
-        print("Escreva Nome|PID|tempo_execucao|prioridade|UID|quantidade_de_memoria para adicionar um novo processo durante o tempo de execução.")
         novo_processo = str(input())
-        if novo_processo == 'sair':
-            break
-        
         novo_processo = novo_processo.split('|')
         try:
             novo_processo = Processo(
